@@ -1,3 +1,7 @@
+var currentResizer = null;
+var Resizable = {};
+var activeContentWindows = [];
+
 const Sides = {
   TOP: "TOP",
   BOTTOM: "BOTTOM",
@@ -5,8 +9,7 @@ const Sides = {
   RIGHT: "RIGHT"
 }
 
-var Resizable = {};
-var activeContentWindows = [];
+
 class ContentWindow{
   
   constructor(parent, width, height, div){
@@ -22,8 +25,10 @@ class ContentWindow{
 
       //Insert the div with correct ID into the parent window; or body if parent is null
       if(parent != null){
-        var htmlToAdd = parent.getDiv().html() + htmlToAdd;
-        parent.getDiv().html(htmlToAdd);
+        //var htmlToAdd = parent.getDiv().html() + htmlToAdd;
+        var htmlToAdd = parent.getDiv().innerHTML + htmlToAdd;
+        //parent.getDiv().html(htmlToAdd);
+        parent.getDiv().innerHTML = htmlToAdd;
       }else{
         document.body.insertAdjacentHTML('afterbegin', htmlToAdd);
       }
@@ -32,10 +37,11 @@ class ContentWindow{
       if(div.id == "")
         div.id = "contentWindow" + activeContentWindows.length;
       this.divId = div.id;
-      this.getDiv().addClass("contentWindow");
+      //this.getDiv().addClass("contentWindow");
+      this.getDiv().classList.add("contentWindow");
     }
 
-    this.children = new Array();
+    this.children = [];
     this.isSplitHorizontally = false;
     this.isSplitVertically = false;
     this.childResizer = null;
@@ -44,15 +50,21 @@ class ContentWindow{
     this.originalMinSize = 20;
     this.childResizerThickness = 4;
 
+    /*
     var style = {
       "position": "absolute",
       "overflow": "hidden"
     }
+    */
 
-    this.getDiv().css(style);
+    //this.getDiv().css(style);
+    this.getDiv().style.position = "absolute";
+    this.getDiv().style.overflow = "hidden";
 
-    this.getDiv().css("width", this.width+"px");
-    this.getDiv().css("height", this.height+"px");
+    //this.getDiv().css("width", this.width+"px");
+    this.getDiv().style.width = this.width+"px";
+    //this.getDiv().css("height", this.height+"px");
+    this.getDiv().style.height = this.height+"px";
 
     activeContentWindows.push(this);
     this.calculateSizeFractionOfParent();
@@ -60,7 +72,8 @@ class ContentWindow{
   }
 
   getDiv(){
-    return $(`#${this.divId}`);
+    //return $(`#${this.divId}`);
+    return document.getElementById(this.divId);
   }
 
   getDivId(){
@@ -73,8 +86,8 @@ class ContentWindow{
     console.groupCollapsed(`Resizing ${this.getDivId()}`);
       console.group(`Before`);
         console.log(`mousePos = ${mousePos}`);
-        console.log(`this.css.left = ${this.getDiv().css("left")}`);
-        console.log(`this.css.top = ${this.getDiv().css("top")}`);
+        console.log(`this.css.left = ${this.getDiv().style.left}`);
+        console.log(`this.css.top = ${this.getDiv().style.top}`);
         console.log(`width = ${this.width}`);
         console.log(`height = ${this.height}`);
       console.groupEnd("Before");
@@ -83,22 +96,31 @@ class ContentWindow{
       return;
     }
 
+    console.log("Side = " + side + ", Window = " + this);
+
     switch(side){
       case Sides.TOP:
         //Based on position of resizer line
-        this.changeSize(this.parent.width, this.parent.getDiv().height() - mousePos);
-        this.getDiv().css("top",  mousePos +"px");
+        //this.changeSize(this.parent.width, this.parent.getDiv().height() - mousePos);
+        this.changeSize(this.parent.width, parseInt(this.parent.getDiv().style.height) - mousePos);
+        //this.getDiv().css("top",  mousePos +"px");
+        this.getDiv().style.top = mousePos +"px";
         break;
       case Sides.BOTTOM:
-        this.changeSize(this.parent.width, mousePos - this.getDiv()[0].getBoundingClientRect().top);
+        //this.changeSize(this.parent.width, mousePos - this.getDiv()[0].getBoundingClientRect().top);
+        this.changeSize(this.parent.width, mousePos - this.getDiv().getBoundingClientRect().top);
         break;
       case Sides.LEFT:   
         //Based on position of resizer line
-        this.changeSize(removePixelUnits(this.parent.getDiv().css("width")) - mousePos, this.parent.height);
-        this.getDiv().css("left", mousePos +"px");
+        //this.changeSize(removePixelUnits(this.parent.getDiv().css("width")) - mousePos, this.parent.height);
+        this.changeSize(parseInt(this.parent.getDiv().style.width) - mousePos, this.parent.height);
+        console.log(`${this.divId}, this.`)
+        //this.getDiv().css("left", mousePos +"px");
+        this.getDiv().style.left = mousePos +"px";
         break;
       case Sides.RIGHT:
-        this.changeSize(mousePos - this.getDiv()[0].getBoundingClientRect().left, this.parent.height);
+        //this.changeSize(mousePos - this.getDiv()[0].getBoundingClientRect().left, this.parent.height);
+        this.changeSize(mousePos - this.getDiv().getBoundingClientRect().left, this.parent.height);
         break;
       default:
         console.error("Window.resize: incorrect side");
@@ -106,8 +128,8 @@ class ContentWindow{
     }
     /*/
       console.group("After");
-        console.log(`this.css.left = ${this.getDiv().css("left")}`);
-        console.log(`this.css.top = ${this.getDiv().css("top")}`);
+        console.log(`this.css.left = ${this.getDiv().style.left}`);
+        console.log(`this.css.top = ${this.getDiv().style.top}`);
         console.log(`width = ${this.width}`);
         console.log(`height = ${this.height}`);
       console.groupEnd("After");
@@ -136,11 +158,13 @@ class ContentWindow{
     }else{
       if(this.parent.isSplitHorizontally){
         this.sizeFractionOfParent = this.width / this.parent.width;
+        console.log(`this.width = ${this.width}, this.parent.width = ${this.parent.width}`);
+        console.log(this);
       }else if (this.parent.isSplitVertically){
         this.sizeFractionOfParent = this.height / this.parent.height;
       }
     }
-
+    console.log("sizeFraction = " + this.sizeFractionOfParent);
   }
 
   getSibling(){
@@ -157,15 +181,17 @@ class ContentWindow{
 
     if(this.isSplitHorizontally){
       var height = this.height;
-      if(this.parent != null)
-        this.parent.height;
+      //if(this.parent != null)
+      //  this.parent.height;
       this.children[0].changeSize(this.width * this.children[0].sizeFractionOfParent, height);
       this.children[1].changeSize(this.width * this.children[1].sizeFractionOfParent, height);
-      this.children[1].getDiv().css("left", this.children[0].getDiv().width() + this.childResizer.lineThickness);
+      //this.children[1].getDiv().css("left", this.children[0].getDiv().width() + this.childResizer.lineThickness);
+      this.children[1].getDiv().style.left = parseInt(this.children[0].getDiv().style.width) + this.childResizer.lineThickness + "px";
     }else if(this.isSplitVertically){
       this.children[0].changeSize(this.width,  this.height * this.children[0].sizeFractionOfParent);
       this.children[1].changeSize(this.width, this.height * this.children[1].sizeFractionOfParent);
-      this.children[1].getDiv().css("top", this.children[0].getDiv().height() + this.childResizer.lineThickness);
+      //this.children[1].getDiv().css("top", this.children[0].getDiv().height() + this.childResizer.lineThickness);
+      this.children[1].getDiv().style.top = parseInt(this.children[0].getDiv().style.height) + this.childResizer.lineThickness + "px";
     }
 
 
@@ -181,6 +207,8 @@ class ContentWindow{
   }
 
   changeSize(width, height){
+    debugValidateNumber("Change size width", width);
+    debugValidateNumber("Change size height", height);
 
     /*/
     console.groupCollapsed("changeSize");
@@ -215,10 +243,14 @@ class ContentWindow{
     }
 
     if(this.parent == null){
-      if(width > ($(window).width()))
-        width = $(window).width();
-      if(height > ($(window).height()))
-        height = $(window).height();
+      //if(width > ($(window).width()))
+      if(width > window.innerWidth)
+        //width = $(window).width();
+        width = window.innerWidth;
+      //if(height > ($(window).height()))
+      if(height > window.height)
+        //height = $(window).height();
+        height = window.innerHeight;
     }else{
       if(width > this.parent.width){
         width = this.parent.width;
@@ -230,8 +262,13 @@ class ContentWindow{
       }
     }
 
-    this.getDiv().css("width", width);
-    this.getDiv().css("height", height);
+    debugValidateNumber("Width", width);
+    debugValidateNumber("Height", height);
+
+    //this.getDiv().css("width", width);
+    this.getDiv().style.width = width + "px";
+    //this.getDiv().css("height", height);
+    this.getDiv().style.height = height + "px";
     this.width = width;
     this.height = height;
 
@@ -247,10 +284,10 @@ class ContentWindow{
     //console.log(this.toString());
     if(this.parent != null)console.log(`parent = ${this.parent.getDivId()}`);
     console.group("div info");
-      console.log(`div width = ${this.getDiv().css("width")}`);
-      console.log(`div height = ${this.getDiv().css("height")}`);
-      console.log(`div left = ${this.getDiv().css("left")}`);
-      console.log(`div top = ${this.getDiv().css("top")}`);
+      console.log("div width = " + this.getDiv().style.width);
+      console.log("div height = " + this.getDiv().style.height);
+      console.log("div left = " + this.getDiv().style.left);
+      console.log("div top = " + this.getDiv().css("top"));
     console.groupEnd("div info");
     console.log(`sizeFractionOfParent = ${this.sizeFractionOfParent}`);
     console.log(`isSplitHorizontally = ${this.isSplitHorizontally}`);
@@ -310,17 +347,23 @@ class ContentWindow{
 
     var leftWidth = (this.width * leftWindowSizeFraction) - this.childResizerThickness/2;
 
-    if(leftWidth != null)
-      this.getDiv().append($(leftDiv).detach());
-    if(rightDiv != null)
-      this.getDiv().append($(rightDiv).detach());
+    if(leftWidth != null && leftDiv != null){
+      //this.getDiv().append($(leftDiv).detach());
+      this.getDiv().appendChild(leftDiv);
+    }
+    if(rightDiv != null){
+      //this.getDiv().append($(rightDiv).detach());
+      this.getDiv().appendChild(rightDiv);
+    }
 
     var w1 = new ContentWindow(this, leftWidth, this.height, leftDiv);
     var w2 = new ContentWindow(this, this.width - leftWidth - this.childResizerThickness/2, this.height, rightDiv);
-    w2.getDiv().css("left", leftWidth + this.childResizerThickness/2);
+    //w2.getDiv().css("left", leftWidth + this.childResizerThickness/2);
+    w2.getDiv().style.left = leftWidth + this.childResizerThickness/2 + "px";
 
     this.childResizer = new Resizer(this, w1, w2, true);
-    this.childResizer.getDiv().css("left", leftWidth - this.childResizerThickness/2);
+    //this.childResizer.getDiv().css("left", leftWidth - this.childResizerThickness/2);
+    this.childResizer.getDiv().style.left = leftWidth - this.childResizerThickness/2 + "px";
 
     this.children.push(w1);
     this.children.push(w2);
@@ -336,16 +379,20 @@ class ContentWindow{
     var topHeight = (this.height * topWindowSizeFraction) - this.childResizerThickness/2;
     
     if(topDiv != null)
-      this.getDiv().append($(topDiv).detach());
+      //this.getDiv().append($(topDiv).detach());
+      this.getDiv().appendChild(topDiv);
     if(bottomDiv != null)
-      this.getDiv().append($(bottomDiv).detach());
+      //this.getDiv().append($(bottomDiv).detach());
+      this.getDiv().appendChild(bottomDiv);
 
     var w1 = new ContentWindow(this, this.width, topHeight - this.childResizerThickness/2, topDiv);
     var w2 = new ContentWindow(this, this.width, this.height - topHeight - this.childResizerThickness/2, bottomDiv);
-    w2.getDiv().css("top", topHeight + this.childResizerThickness/2);
+    //w2.getDiv().css("top", topHeight + this.childResizerThickness/2);
+    w2.getDiv().style.top = topHeight + this.childResizerThickness/2  + "px";
 
     this.childResizer = new Resizer(this, w1, w2, false);
-    this.childResizer.getDiv().css("top", topHeight - this.childResizerThickness/2);
+    //this.childResizer.getDiv().css("top", topHeight - this.childResizerThickness/2);
+    this.childResizer.getDiv().style.top = topHeight - this.childResizerThickness/2 + "px";
 
     this.children.push(w1);
     this.children.push(w2);
@@ -355,8 +402,6 @@ class ContentWindow{
   }
 
 }
-
-var currentResizer = null;
 
 
 function attachResizerEvents(){
@@ -407,20 +452,25 @@ function windowToFullScreen(contentWindow){
   currentFullScreenWindow = contentWindow;
   $("#fullScreen").css("display", "initial");
   */
-  savedHtml = activeContentWindows[0].getDiv().html();
-  activeContentWindows[0].getDiv().html(contentWindow.getDiv().html());
-  activeContentWindows[0].getDiv().css("background-color", contentWindow.getDiv().css("background-color"));
+  //savedHtml = activeContentWindows[0].getDiv().html();
+  savedHtml = activeContentWindows[0].getDiv().innerHTML;
+  //activeContentWindows[0].getDiv().html(contentWindow.getDiv().html());
+  activeContentWindows[0].getDiv().innerHTML = contentWindow.getDiv().innerHTML;
+  //activeContentWindows[0].getDiv().css("background-color", contentWindow.getDiv().css("background-color"));
+  activeContentWindows[0].getDiv().style.backgroundColor = contentWindow.getDiv().style.backgroundColor;
   
 }
 
 function closeFullScreen(){
-  activeContentWindows[0].getDiv().html(savedHtml);
+  //activeContentWindows[0].getDiv().html(savedHtml);
+  activeContentWindows[0].getDiv().innerHTML = savedHtml;
   attachResizerEvents();
 }
 
 function getContentWindowFromDiv(div){
   for(var i = 0; i < activeContentWindows.length; i++){
-    if(activeContentWindows[i].getDivId() == div[0].id){
+    //if(activeContentWindows[i].getDivId() == div[0].id){
+    if(activeContentWindows[i].getDivId() == div.id){
       return activeContentWindows[i];
     }
   }
@@ -429,13 +479,15 @@ function getContentWindowFromDiv(div){
 }
 
 function resizeToFillWindow(){
-  activeContentWindows[0].changeSize($(window).width(), $(window).height());
+  //activeContentWindows[0].changeSize($(window).width(), $(window).height());
+  activeContentWindows[0].changeSize(window.width, window.height);
   activeContentWindows[0].childrenResize();
   windowResized();
 }
 
 function windowResized(){
   //Code to run when any window is resized should be placed here.
+  checkErrors();
 }
 
 
@@ -453,7 +505,7 @@ function windowResized(){
 
 
 
-var activeResizers = new Array();
+var activeResizers = [];
 class Resizer{
   constructor(parent, window1, window2, isHorizontal){
     this.parent = parent;
@@ -469,28 +521,40 @@ class Resizer{
 
     this.divId = `resizer${activeResizers.length}`;
 
-    parent.getDiv().html(parent.getDiv().html() + 
-      `<div id="${this.divId}" class="resizer"></div>`);
+    //parent.getDiv().html(parent.getDiv().html() + 
+    parent.getDiv().innerHTML = parent.getDiv().innerHTML + 
+      `<div id="${this.divId}" class="resizer"></div>`;
     if(this.isHorizontal){
-      this.getDiv().addClass("horizontalResizer");
-      this.getDiv().css("cursor", "ew-resize");
+      //this.getDiv().addClass("horizontalResizer");
+      this.getDiv().classList.add("horizontalResizer");
+      //this.getDiv().css("cursor", "ew-resize");
+      this.getDiv().style.cursor ="ew-resize";
     }else{
-      this.getDiv().addClass("verticalResizer");
-      this.getDiv().css("cursor", "ns-resize");
+      //this.getDiv().addClass("verticalResizer");
+      this.getDiv().classList.add("verticalResizer");
+      //this.getDiv().css("cursor", "ns-resize");
+      this.getDiv().style.cursor = "ns-resize";
     }
 
+    /*
     var style = {
       "position": "absolute",
     }
-    this.getDiv().css(style);
+    */
+    //this.getDiv().css(style);
+    this.getDiv().style.position = "absolute";
 
     this.lineThickness = 4;
     if(isHorizontal){
-      this.getDiv().css("width", this.lineThickness);
-      this.getDiv().css("height", this.parent.height);
+      //this.getDiv().css("width", this.lineThickness);
+      this.getDiv().style.width = this.lineThickness + "px";
+      //this.getDiv().css("height", this.parent.height);
+      this.getDiv().style.height = this.parent.height + "px";
     }else{
-      this.getDiv().css("width", this.parent.width);
-      this.getDiv().css("height", this.lineThickness);
+      //this.getDiv().css("width", this.parent.width);
+      this.getDiv().style.width = this.parent.width + "px";
+      //this.getDiv().css("height", this.lineThickness);
+      this.getDiv().style.height = this.lineThickness + "px";
     }
 
     this.reposition();
@@ -502,7 +566,8 @@ class Resizer{
   }
 
   getDiv(){
-    return $(`#${this.divId}`);
+    //return $(`#${this.divId}`);
+    return document.getElementById(this.divId);
   }
 
   getDivId(){
@@ -512,11 +577,15 @@ class Resizer{
   reposition(){
 
     if(this.isHorizontal){
-      this.getDiv().css("left", this.leftWindow.getDiv().css("width"));
-      this.getDiv().css("height", this.parent.getDiv().css("height"));
+      //this.getDiv().css("left", this.leftWindow.getDiv().css("width"));
+      this.getDiv().style.left = this.leftWindow.getDiv().style.width;
+      //this.getDiv().css("height", this.parent.getDiv().css("height"));
+      this.getDiv().style.height = this.parent.getDiv().style.height;
     }else{
-      this.getDiv().css("top", this.topWindow.getDiv().css("height"));
-      this.getDiv().css("width", this.parent.getDiv().css("width"));
+      //this.getDiv().css("top", this.topWindow.getDiv().css("height"));
+      this.getDiv().style.top = this.topWindow.getDiv().style.height;
+      //this.getDiv().css("width", this.parent.getDiv().css("width"));
+      this.getDiv().style.width = this.parent.getDiv().style.width;
     }
 
   }
@@ -540,19 +609,24 @@ class Resizer{
       
       //Change the size of the right window
       
-      currentResizer.getDiv().css("left", currentResizer.leftWindow.getDiv().css("width"));
-      currentResizer.rightWindow.resize(Sides.LEFT, removePixelUnits(currentResizer.getDiv().css("left")));
+      //currentResizer.getDiv().css("left", currentResizer.leftWindow.getDiv().css("width"));
+      currentResizer.getDiv().style.left = currentResizer.leftWindow.getDiv().style.width;
+      //currentResizer.rightWindow.resize(Sides.LEFT, removePixelUnits(currentResizer.getDiv().css("left")));
+      currentResizer.rightWindow.resize(Sides.LEFT, parseInt(currentResizer.getDiv().style.left));
       //currentResizer.getDiv().css("left", e.pageX);
     }else{
       //Change size of the top window
       currentResizer.topWindow.resize(Sides.BOTTOM, e.pageY);
 
       //Change size of the bottom window and move resizer
-      currentResizer.getDiv().css("top", currentResizer.topWindow.getDiv().css("height"));
-      currentResizer.bottomWindow.resize(Sides.TOP, removePixelUnits(currentResizer.getDiv().css("top")));
+      //currentResizer.getDiv().css("top", currentResizer.topWindow.getDiv().css("height"));
+      currentResizer.getDiv().style.top = currentResizer.topWindow.getDiv().style.height;
+      //currentResizer.bottomWindow.resize(Sides.TOP, removePixelUnits(currentResizer.getDiv().css("top")));
+      currentResizer.bottomWindow.resize(Sides.TOP, parseInt(currentResizer.getDiv().style.top));
     }
 
-
+    currentResizer.debugInfo();
+    console.log(e);
   }
 
   delete(){
@@ -560,7 +634,8 @@ class Resizer{
       if(activeResizers[i] == this)
         activeResizers.splice(i,1);
     }
-    this.getDiv()[0].parentNode.removeChild(this.getDiv()[0]);
+    //this.getDiv()[0].parentNode.removeChild(this.getDiv()[0]);
+    this.getDiv().parentNode.removeChild(this.getDiv());
   }
 
   cancelResize(e){
@@ -572,24 +647,67 @@ class Resizer{
   debugInfo(){
     var groupName = `${this.divId}`;
     console.group(groupName);
-    console.log(`divId = ${this.divId}`);
-    console.log(`width = ${this.getDiv().css("width")}`);
-    console.log(`height = ${this.getDiv().css("height")}`);
-    console.log(`left = ${this.getDiv().css("left")}`);
-    console.log(`top = ${this.getDiv().css("top")}`);
+    console.log("divId = " + this.divId);
+    console.log("width = " + this.getDiv().style.width);
+    console.log("height = " + this.getDiv().style.height);
+    console.log("left = " + this.getDiv().style.left);
+    console.log("top = " + this.getDiv().style.top);
     
     if(this.isHorizontal){
       console.log("HORIZONTAL RESIZER");
-      console.log(`leftWindow = ${leftWindow.getDivId()}`);
-      console.log(`rightWindow = ${rightWindow.getDivId()}`);
+      console.log(`leftWindow = ${this.leftWindow.getDivId()}`);
+      console.log(`rightWindow = ${this.rightWindow.getDivId()}`);
     }else{
       console.log("VERTICAL RESIZER");
-      console.log(`topWindow = ${topWindow.getDivId()}`);
-      console.log(`bottomWindow = ${bottomWindow.getDivId()}`);
+      console.log(`topWindow = ${this.topWindow.getDivId()}`);
+      console.log(`bottomWindow = ${this.bottomWindow.getDivId()}`);
     }
     console.log("activeResizers = " + activeResizers.length);
 
     console.groupEnd(groupName);
   }
 
+}
+
+debugAssertFalse("test", "500px", NaN);
+debugAssertFalse("typeofTest", "number", typeof("500px"));
+debugValidateNumber("Number test", 500);
+
+function debugAssertTrue(msg, value1, value2){
+  if(!value1 === value2)
+    console.error(msg + ": " + value1 + ", " + value2);
+}
+
+function debugAssertFalse(msg, value1, value2){
+  if(value1 == value2){
+    console.error(msg + ": " + value1 + ", " + value2);
+  }
+    console.log(value1);
+    console.log(value2);
+}
+
+function debugValidateNumber(msg, value){
+  if(typeof(value) !== "number")
+    console.error(msg + ": "+ value + " is not a number");
+}
+
+function checkErrors(){
+  var i;
+  var current;
+  var parent;
+  for(var i = 0; i < activeContentWindows.length; i++){
+    if(activeContentWindows[i].parent != null){
+      current = activeContentWindows[i];
+      parent = activeContentWindows[i].parent;
+      if(current.width > parent.width){
+        console.error(`contentWindow${i}.width (${current.width}) is greater than parent.width (${parent.width})`);
+      }
+      if(current.width <= 0){
+        console.error(`contentWindow${i}.width (${current.width}) is less than 0`);
+      }
+      if(current.width == NaN){
+        console.error(`contentWindow${i}.width (${current.width}) is not a number`);
+      }
+    }
+  }
 }
