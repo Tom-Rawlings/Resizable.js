@@ -1,16 +1,64 @@
 var currentResizer = null;
-var Resizable = {};
-var activeContentWindows = [];
+const Resizable = {};
+Resizable.activeContentWindows = [];
 
-const Sides = {
+Resizable.Sides = {
   TOP: "TOP",
   BOTTOM: "BOTTOM",
   LEFT: "LEFT",
   RIGHT: "RIGHT"
 }
 
+Resizable.Classes = {
+  WINDOW_TOP: "resizable-top",
+  WINDOW_BOTTOM: "resizable-bottom",
+  WINDOW_LEFT: "resizable-left",
+  WINDOW_RIGHT: "resizable-right"
+}
 
-class ContentWindow{
+
+Resizable.initialise = function(parentId){
+  //Find left window
+  var parent = document.getElementById(parentId);
+  var parentWindow = new Resizable.ContentWindow(null, parseInt(parent.style.width, 10), parseInt(parent.style.height, 10), parent);
+  Resizable.activeContentWindows.push(parentWindow);
+  Resizable.setupChildren(parentWindow);
+}
+
+Resizable.setupChildren = function(parentWindow){
+  var childInfo = parentWindow.findChildWindowElements();
+  if(childInfo.child1 == null){
+    //No children found
+    return;
+  }
+  var sizeFraction = 0.5;
+  if(childInfo.isHorizontal){
+    parentWindow.splitHorizontally(sizeFraction, childInfo.child1, childInfo.child2);
+  }else{
+    parentWindow.splitVertically(sizeFraction, childInfo.child1, childInfo.child2);
+  }
+  //Set up the children of the newly created windows
+  var childWindow1 = Resizable.activeContentWindows[Resizable.activeContentWindows.length-2];
+  var childWindow2 = Resizable.activeContentWindows[Resizable.activeContentWindows.length-1]
+  Resizable.setupChildren(childWindow1);
+  Resizable.setupChildren(childWindow2);
+
+}
+
+/*
+document.addEventListener("DOMContentLoaded", () => {
+  //...
+})
+*/
+
+window.addEventListener("resize", () => {
+  //...console.log("resize");
+  Resizable.activeContentWindows[0].changeSize(window.innerWidth, window.innerHeight);
+  Resizable.activeContentWindows[0].childrenResize();
+})
+
+
+Resizable.ContentWindow = class{
   
   constructor(parent, width, height, div){
     this.parent = parent;
@@ -19,7 +67,7 @@ class ContentWindow{
     this.sizeFractionOfParent = 0.5;
 
     if(div == null){
-      this.divId = "contentWindow" + activeContentWindows.length;
+      this.divId = "contentWindow" + Resizable.activeContentWindows.length;
 
       var htmlToAdd = `<div id="${this.divId}" class="contentWindow"></div>`;
 
@@ -33,7 +81,7 @@ class ContentWindow{
     }
     else{
       if(div.id == "")
-        div.id = "contentWindow" + activeContentWindows.length;
+        div.id = "contentWindow" + Resizable.activeContentWindows.length;
       this.divId = div.id;
       this.getDiv().classList.add("contentWindow");
     }
@@ -54,7 +102,7 @@ class ContentWindow{
     this.getDiv().style.width = this.width+"px";
     this.getDiv().style.height = this.height+"px";
 
-    activeContentWindows.push(this);
+    Resizable.activeContentWindows.push(this);
     this.calculateSizeFractionOfParent();
 
   }
@@ -65,6 +113,38 @@ class ContentWindow{
 
   getDivId(){
     return this.divId;
+  }
+
+  findChildWindowElements(){
+    //Cannot have more than two direct children
+    var child1, child2, isHorizontal = false;
+    //Find left child
+    if(document.querySelectorAll(`#${this.divId} > .${Resizable.Classes.WINDOW_LEFT}`).length > 0){
+      child1 = document.querySelectorAll(`#${this.divId} > .${Resizable.Classes.WINDOW_LEFT}`)[0];
+      if(document.querySelectorAll(`#${this.divId} > .${Resizable.Classes.WINDOW_LEFT}`).length > 0){
+        child2 = document.querySelectorAll(`#${this.divId} > .${Resizable.Classes.WINDOW_RIGHT}`)[0];
+      }else{
+        console.error(`${this.divId} has left child but not right`);
+      }
+      isHorizontal = true;
+    }
+    if(document.querySelectorAll(`#${this.divId} > .${Resizable.Classes.WINDOW_TOP}`).length > 0){
+      if(child1 != undefined){
+        console.error(`${this.divId} has both left and top children`);
+        return;
+      }else{
+        child1 = document.querySelectorAll(`#${this.divId} > .${Resizable.Classes.WINDOW_TOP}`)[0];
+        if(document.querySelectorAll(`#${this.divId} > .${Resizable.Classes.WINDOW_BOTTOM}`).length > 0){
+          child2 = document.querySelectorAll(`#${this.divId} > .${Resizable.Classes.WINDOW_BOTTOM}`)[0];
+        }else{
+          console.error(`${this.divId} has top child but not bottom`);
+        }
+      }
+      isHorizontal = false;
+    }
+
+    return {child1: child1, child2: child2, isHorizontal: isHorizontal};
+
   }
 
   resize(side, mousePos){
@@ -86,21 +166,21 @@ class ContentWindow{
     console.log("Side = " + side + ", Window = " + this);
 
     switch(side){
-      case Sides.TOP:
+      case Resizable.Sides.TOP:
         //Based on position of resizer line
         this.changeSize(this.parent.width, parseInt(this.parent.getDiv().style.height) - mousePos);
         this.getDiv().style.top = mousePos +"px";
         break;
-      case Sides.BOTTOM:
+      case Resizable.Sides.BOTTOM:
         this.changeSize(this.parent.width, mousePos - this.getDiv().getBoundingClientRect().top);
         break;
-      case Sides.LEFT:   
+      case Resizable.Sides.LEFT:   
         //Based on position of resizer line
         this.changeSize(parseInt(this.parent.getDiv().style.width) - mousePos, this.parent.height);
         console.log(`${this.divId}, this.`)
         this.getDiv().style.left = mousePos +"px";
         break;
-      case Sides.RIGHT:
+      case Resizable.Sides.RIGHT:
         this.changeSize(mousePos - this.getDiv().getBoundingClientRect().left, this.parent.height);
         break;
       default:
@@ -322,8 +402,8 @@ class ContentWindow{
       this.getDiv().appendChild(rightDiv);
     }
 
-    var w1 = new ContentWindow(this, leftWidth, this.height, leftDiv);
-    var w2 = new ContentWindow(this, this.width - leftWidth - this.childResizerThickness/2, this.height, rightDiv);
+    var w1 = new Resizable.ContentWindow(this, leftWidth, this.height, leftDiv);
+    var w2 = new Resizable.ContentWindow(this, this.width - leftWidth - this.childResizerThickness/2, this.height, rightDiv);
     w2.getDiv().style.left = leftWidth + this.childResizerThickness/2 + "px";
 
     this.childResizer = new Resizer(this, w1, w2, true);
@@ -347,8 +427,8 @@ class ContentWindow{
     if(bottomDiv != null)
       this.getDiv().appendChild(bottomDiv);
 
-    var w1 = new ContentWindow(this, this.width, topHeight - this.childResizerThickness/2, topDiv);
-    var w2 = new ContentWindow(this, this.width, this.height - topHeight - this.childResizerThickness/2, bottomDiv);
+    var w1 = new Resizable.ContentWindow(this, this.width, topHeight - this.childResizerThickness/2, topDiv);
+    var w2 = new Resizable.ContentWindow(this, this.width, this.height - topHeight - this.childResizerThickness/2, bottomDiv);
     w2.getDiv().style.top = topHeight + this.childResizerThickness/2  + "px";
 
     this.childResizer = new Resizer(this, w1, w2, false);
@@ -412,21 +492,21 @@ function windowToFullScreen(contentWindow){
   currentFullScreenWindow = contentWindow;
   $("#fullScreen").css("display", "initial");
   */
-  savedHtml = activeContentWindows[0].getDiv().innerHTML;
-  activeContentWindows[0].getDiv().innerHTML = contentWindow.getDiv().innerHTML;
-  activeContentWindows[0].getDiv().style.backgroundColor = contentWindow.getDiv().style.backgroundColor;
+  savedHtml = Resizable.activeContentWindows[0].getDiv().innerHTML;
+  Resizable.activeContentWindows[0].getDiv().innerHTML = contentWindow.getDiv().innerHTML;
+  Resizable.activeContentWindows[0].getDiv().style.backgroundColor = contentWindow.getDiv().style.backgroundColor;
   
 }
 
 function closeFullScreen(){
-  activeContentWindows[0].getDiv().innerHTML = savedHtml;
+  Resizable.activeContentWindows[0].getDiv().innerHTML = savedHtml;
   attachResizerEvents();
 }
 
 function getContentWindowFromDiv(div){
-  for(var i = 0; i < activeContentWindows.length; i++){
-    if(activeContentWindows[i].getDivId() == div.id){
-      return activeContentWindows[i];
+  for(var i = 0; i < Resizable.activeContentWindows.length; i++){
+    if(Resizable.activeContentWindows[i].getDivId() == div.id){
+      return Resizable.activeContentWindows[i];
     }
   }
   console.error("getContentWindowFromDiv failed to find ContentWindow");
@@ -434,8 +514,8 @@ function getContentWindowFromDiv(div){
 }
 
 function resizeToFillWindow(){
-  activeContentWindows[0].changeSize(window.width, window.height);
-  activeContentWindows[0].childrenResize();
+  Resizable.activeContentWindows[0].changeSize(window.width, window.height);
+  Resizable.activeContentWindows[0].childrenResize();
   windowResized();
 }
 
@@ -544,19 +624,19 @@ class Resizer{
 
     if(currentResizer.isHorizontal){
       //Change size of left window
-      currentResizer.leftWindow.resize(Sides.RIGHT, e.pageX);
+      currentResizer.leftWindow.resize(Resizable.Sides.RIGHT, e.pageX);
       
       //Change the size of the right window
       
       currentResizer.getDiv().style.left = currentResizer.leftWindow.getDiv().style.width;
-      currentResizer.rightWindow.resize(Sides.LEFT, parseInt(currentResizer.getDiv().style.left));
+      currentResizer.rightWindow.resize(Resizable.Sides.LEFT, parseInt(currentResizer.getDiv().style.left));
     }else{
       //Change size of the top window
-      currentResizer.topWindow.resize(Sides.BOTTOM, e.pageY);
+      currentResizer.topWindow.resize(Resizable.Sides.BOTTOM, e.pageY);
 
       //Change size of the bottom window and move resizer
       currentResizer.getDiv().style.top = currentResizer.topWindow.getDiv().style.height;
-      currentResizer.bottomWindow.resize(Sides.TOP, parseInt(currentResizer.getDiv().style.top));
+      currentResizer.bottomWindow.resize(Resizable.Sides.TOP, parseInt(currentResizer.getDiv().style.top));
     }
 
     currentResizer.debugInfo();
@@ -602,23 +682,6 @@ class Resizer{
 
 }
 
-debugAssertFalse("test", "500px", NaN);
-debugAssertFalse("typeofTest", "number", typeof("500px"));
-debugValidateNumber("Number test", 500);
-
-function debugAssertTrue(msg, value1, value2){
-  if(!value1 === value2)
-    console.error(msg + ": " + value1 + ", " + value2);
-}
-
-function debugAssertFalse(msg, value1, value2){
-  if(value1 == value2){
-    console.error(msg + ": " + value1 + ", " + value2);
-  }
-    console.log(value1);
-    console.log(value2);
-}
-
 function debugValidateNumber(msg, value){
   if(typeof(value) !== "number")
     console.error(msg + ": "+ value + " is not a number");
@@ -628,10 +691,10 @@ function checkErrors(){
   var i;
   var current;
   var parent;
-  for(var i = 0; i < activeContentWindows.length; i++){
-    if(activeContentWindows[i].parent != null){
-      current = activeContentWindows[i];
-      parent = activeContentWindows[i].parent;
+  for(var i = 0; i < Resizable.activeContentWindows.length; i++){
+    if(Resizable.activeContentWindows[i].parent != null){
+      current = Resizable.activeContentWindows[i];
+      parent = Resizable.activeContentWindows[i].parent;
       if(current.width > parent.width){
         console.error(`contentWindow${i}.width (${current.width}) is greater than parent.width (${parent.width})`);
       }

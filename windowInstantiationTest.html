@@ -5,7 +5,6 @@
 		<meta charset="utf-8">
 		<title>Window Test</title>
 
-		<!--<script src="jquery-3.4.1.min.js"></script>-->
 		<script src="resizable.js"></script>
 
 		<style>
@@ -49,12 +48,6 @@
 				background-color: #DAF7A6;
 			}
 
-			/*
-			#contentWindow2{
-				background-color: aqua;
-			}
-			*/
-
 			#contentWindow4{
 				background-color: #FFC300;
 			}
@@ -83,24 +76,11 @@
 				padding: 0;
 			}
 
-
-/*			
-2A4863
-BCD2E8
-5FA3E3
-124370
-4B80B3
-*/
-
-/*#48B3A2*/
-
-
 			body {
 				margin: 0px;
 				padding: 0px;
 				font-family: courier;
 			}
-
 
 		</style>
 
@@ -108,27 +88,46 @@ BCD2E8
 
 	<body>
 		<div id="fullScreen"></div>
-		<div id="main"></div>
-		<div id="test">
-			<div class="resizable-top">
-					<div class="resizable-left"></div>
-					<div class="resizable-right"></div>
+		<div id="main">
+			<div class="resizable-left">
+					<div class="resizable-top">
+							<div class="resizable-left"></div>
+							<div class="resizable-right"></div>
+						</div>
+						<div class="resizable-bottom"></div>
 			</div>
+			<div class="resizable-right">
+				<div class="resizable-top">
+						<div class="resizable-left"></div>
+						<div class="resizable-right">
+								<div class="resizable-top">
+									<div class="resizable-left"></div>
+									<div class="resizable-right"></div>
+								</div>
+								<div class="resizable-bottom"></div>
+						</div>
+				</div>
+				<div class="resizable-bottom"></div>
+			</div>
+		</div>
 
 	</body>
 
 	<script>
 
-		//new ContentWindow(null, $(window).width(), $(window).height(), $("#main")[0]);
-		new Resizable.ContentWindow(null, window.innerWidth, window.innerHeight, document.getElementById("main"));
-		Resizable.activeContentWindows[0].splitHorizontally(0.5, null, null);
+		var colourPalette = ["#DAF7A6", "#FFC300", "#FF5733", "#C70039", "#900C3F", "#cc7832"];
 
-		Resizable.activeContentWindows[2].splitVertically(0.5, null, null);
-		Resizable.activeContentWindows[3].splitHorizontally(0.5, null, null);
-		Resizable.activeContentWindows[6].splitVertically(0.5, null, null);
-		Resizable.activeContentWindows[7].splitHorizontally(0.5, null, null);
-
-		Resizable.activeContentWindows[8].getDiv().innerHTML = '<div class="resizable-top"></div>' + '<div class="resizable-right"></div>';
+		document.addEventListener("DOMContentLoaded", () => {
+			//...
+			document.getElementById("main").style.width = window.innerWidth + "px";
+			document.getElementById("main").style.height = window.innerHeight + "px";
+			Resizable.initialise("main");
+			//Apply random background colours from palette.
+			for(var i = 0; i < Resizable.activeContentWindows.length; i++){
+				Resizable.activeContentWindows[i].getDiv().style.backgroundColor = colourPalette[Math.floor(Math.random() * (colourPalette.length-1))];
+			}
+		})
+		
 		
 	</script>
 
