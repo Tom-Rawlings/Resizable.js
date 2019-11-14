@@ -154,7 +154,7 @@ Resizable.ContentWindow = class{
       return;
     }
 
-    console.log("Side = " + side + ", Window = " + this);
+    //console.log("Side = " + side + ", Window = " + this);
 
     switch(side){
       case Resizable.Sides.TOP:
@@ -168,7 +168,7 @@ Resizable.ContentWindow = class{
       case Resizable.Sides.LEFT:   
         //Based on position of resizer line
         this.changeSize(parseInt(this.parent.getDiv().style.width) - mousePos, this.parent.height);
-        console.log(`${this.divId}, this.`);
+        //console.log(`${this.divId}, this.`);
         this.getDiv().style.left = Math.round(mousePos) +"px";
         break;
       case Resizable.Sides.RIGHT:
@@ -207,7 +207,7 @@ Resizable.ContentWindow = class{
         this.sizeFractionOfParent = this.height / this.parent.height;
       }
     }
-    console.log("sizeFraction = " + this.sizeFractionOfParent);
+    console.log("sizeFraction = " + this.sizeFractionOfParent + " " + this.getDivId());
   }
 
   getSibling(){
@@ -443,6 +443,12 @@ function attachResizerEvents(){
         window.addEventListener('mousemove', Resizable.currentResizer.resize);
         window.addEventListener('mouseup', Resizable.currentResizer.cancelResize);
       });
+      el.addEventListener('touchstart', function(e) {
+        console.log("touchstart");
+        Resizable.currentResizer = getResizerFromDiv(el.id);
+        window.addEventListener('touchmove', Resizable.currentResizer.resize);
+        window.addEventListener('touchend', Resizable.currentResizer.cancelResize);
+      });
     });
   }
 }
@@ -570,6 +576,15 @@ Resizable.Resizer = class{
   resize(e){
     e.preventDefault();
 
+    var inputX = e.pageX;
+    var inputY = e.pageY;
+    if(inputX == undefined){
+      inputX = e.changedTouches[0].pageX;
+    }
+    if(inputY == undefined){
+      inputY = e.changedTouches[0].pageY;
+    }
+
     //Find the current resizer being clicked
     if(Resizable.currentResizer == null){
       for(var i = 0; i < Resizable.activeResizers.length; i++){
@@ -581,7 +596,7 @@ Resizable.Resizer = class{
 
     if(Resizable.currentResizer.isHorizontal){
       //Change size of left window
-      Resizable.currentResizer.leftWindow.resize(Resizable.Sides.RIGHT, e.pageX);
+      Resizable.currentResizer.leftWindow.resize(Resizable.Sides.RIGHT, inputX);
       
       //Change the size of the right window
       
@@ -589,15 +604,16 @@ Resizable.Resizer = class{
       Resizable.currentResizer.rightWindow.resize(Resizable.Sides.LEFT, parseInt(Resizable.currentResizer.getDiv().style.left));
     }else{
       //Change size of the top window
-      Resizable.currentResizer.topWindow.resize(Resizable.Sides.BOTTOM, e.pageY);
+      //Resizable.currentResizer.topWindow.resize(Resizable.Sides.BOTTOM, e.pageY);
+      Resizable.currentResizer.topWindow.resize(Resizable.Sides.BOTTOM, inputY);
 
       //Change size of the bottom window and move resizer
       Resizable.currentResizer.getDiv().style.top = Resizable.currentResizer.topWindow.getDiv().style.height;
       Resizable.currentResizer.bottomWindow.resize(Resizable.Sides.TOP, parseInt(Resizable.currentResizer.getDiv().style.top));
     }
 
-    Resizable.currentResizer.debugInfo();
-    console.log(e);
+    //Resizable.currentResizer.debugInfo();
+    //console.log(e);
   }
 
   delete(){
@@ -611,6 +627,9 @@ Resizable.Resizer = class{
   cancelResize(e){
     window.removeEventListener("mousemove", Resizable.currentResizer.resize);
     window.removeEventListener("mouseup", Resizable.currentResizer.cancelResize);
+
+    window.removeEventListener("touchmove", Resizable.currentResizer.resize);
+    window.removeEventListener("touchend", Resizable.currentResizer.cancelResize);
     Resizable.currentResizer = null;
   }
 
