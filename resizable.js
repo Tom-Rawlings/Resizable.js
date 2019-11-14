@@ -18,9 +18,10 @@ Resizable.Classes = {
 };
 
 
-Resizable.initialise = function(parentId){
+Resizable.initialise = function(parentId, initialSizes){
   //Find left window
   Resizable.resizerThickness = 4;
+  Resizable.initialSizes = initialSizes;
   var parent = document.getElementById(parentId);
   var parentWindow = new Resizable.ContentWindow(null, parseInt(parent.style.width, 10), parseInt(parent.style.height, 10), parent);
   Resizable.activeContentWindows.push(parentWindow);
@@ -33,7 +34,10 @@ Resizable.setupChildren = function(parentWindow){
     //No children found
     return;
   }
-  var sizeFraction = 0.5;
+  var sizeFraction;
+  sizeFraction = Resizable.initialSizes[childInfo.child1.id];
+  if(sizeFraction == undefined)
+    sizeFraction = 0.5;
   if(childInfo.isHorizontal){
     parentWindow.splitHorizontally(sizeFraction, childInfo.child1, childInfo.child2);
   }else{

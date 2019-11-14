@@ -4,40 +4,24 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Window Test</title>
+		<link rel="stylesheet" type="text/css" href="resizable-style.css">
+		<title>Resizable Demo</title>
 
 		<script src="resizable.js"></script>
 
 		<style>
 
-			* {
-				padding: 0;
-				margin: 0;
-				top: 0;
-				left: 0;
+			#win5, #win14{
+				background-color: #81A19F;
 			}
-
-			.contentWindow{
-				position: absolute;
-				background-color: red;
-				
+			#win9, #win4{
+				background-color: #BEEDEB;
 			}
-
-			.resizer{
-				width: 200px;
-				height: 200px;
-				background-color: #581845;
-				position: absolute;
-				z-index: 100;
-
+			#win12, #win6{
+				background-color: #B4E0DE;
 			}
-
-			.verticalResizer{
-				cursor: ns-resize;
-			}
-
-			.horizontalResizer{
-				cursor: ew-resize;
+			#win13, #win8{
+				background-color: #A0C7C5;
 			}
 
 		</style>
@@ -45,27 +29,27 @@
 	</head>
 
 	<body>
-		<div id="fullScreen"></div>
+
 		<div id="main">
-			<div class="resizable-left">
-					<div class="resizable-top">
-							<div class="resizable-left"></div>
-							<div class="resizable-right"></div>
-						</div>
-						<div class="resizable-bottom"></div>
-			</div>
-			<div class="resizable-right">
-				<div class="resizable-top">
-						<div class="resizable-left"></div>
-						<div class="resizable-right" id="mainParent">
-								<div class="resizable-top" id="top">
-									<div class="resizable-left" id="topLeft"></div>
-									<div class="resizable-right" id="topRight"></div>
-								</div>
-								<div class="resizable-bottom" id="bottom"></div>
-						</div>
+			<div class="resizable-left" id="win1">
+				<div class="resizable-top" id="win3">
+					<div class="resizable-left" id="win5"></div>
+					<div class="resizable-right" id="win6"></div>
 				</div>
-				<div class="resizable-bottom"></div>
+				<div class="resizable-bottom" id="win4"></div>
+			</div>
+			<div class="resizable-right" id="win2">
+				<div class="resizable-top" win="win7">
+					<div class="resizable-left" id="win9"></div>
+					<div class="resizable-right" id="win10">
+						<div class="resizable-top" id="win11">
+							<div class="resizable-left" id="win13"></div>
+							<div class="resizable-right" id="win14"></div>
+						</div>
+						<div class="resizable-bottom" id="win12"></div>
+					</div>
+				</div>
+				<div class="resizable-bottom" id="win8"></div>
 			</div>
 		</div>
 
@@ -73,19 +57,25 @@
 
 	<script>
 
-		var colourPalette = ["#DAF7A6", "#FFC300", "#FF5733", "#C70039", "#900C3F", "#cc7832"];
-		var checkValues;
 		document.addEventListener("DOMContentLoaded", () => {
 			//...
 			document.getElementById("main").style.width = window.innerWidth + "px";
 			document.getElementById("main").style.height = window.innerHeight + "px";
-			Resizable.initialise("main");
-			//Apply random background colours from palette.
-			for(var i = 0; i < Resizable.activeContentWindows.length; i++){
-				Resizable.activeContentWindows[i].getDiv().style.backgroundColor = colourPalette[Math.floor(Math.random() * (colourPalette.length-1))];
-			}
 
-		})
+			var sizes = {
+				"win1" : 0.5,
+				"win3" : 0.75,
+				"win4" : 0.5,
+				"win6" : 0.4,
+				"win11" : 0.8,
+				"win9" : 0.5,
+				"win13" : 0.4 
+			};
+
+			//Resizable.initialise("main", sizes);
+			Resizable.initialise("main", {});
+
+		});
 
 		window.addEventListener("resize", () => {
 			Resizable.activeContentWindows[0].changeSize(window.innerWidth, window.innerHeight);
