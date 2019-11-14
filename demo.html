@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Window Test</title>
+
+		<script src="resizable.js"></script>
+
+		<style>
+
+			* {
+				padding: 0;
+				margin: 0;
+				top: 0;
+				left: 0;
+			}
+
+			.contentWindow{
+				position: absolute;
+				background-color: red;
+				
+			}
+
+			.resizer{
+				width: 200px;
+				height: 200px;
+				background-color: #581845;
+				position: absolute;
+				z-index: 100;
+
+			}
+
+			.verticalResizer{
+				cursor: ns-resize;
+			}
+
+			.horizontalResizer{
+				cursor: ew-resize;
+			}
+
+		</style>
+
+	</head>
+
+	<body>
+		<div id="fullScreen"></div>
+		<div id="main">
+			<div class="resizable-left">
+					<div class="resizable-top">
+							<div class="resizable-left"></div>
+							<div class="resizable-right"></div>
+						</div>
+						<div class="resizable-bottom"></div>
+			</div>
+			<div class="resizable-right">
+				<div class="resizable-top">
+						<div class="resizable-left"></div>
+						<div class="resizable-right" id="mainParent">
+								<div class="resizable-top" id="top">
+									<div class="resizable-left" id="topLeft"></div>
+									<div class="resizable-right" id="topRight"></div>
+								</div>
+								<div class="resizable-bottom" id="bottom"></div>
+						</div>
+				</div>
+				<div class="resizable-bottom"></div>
+			</div>
+		</div>
+
+	</body>
+
+	<script>
+
+		var colourPalette = ["#DAF7A6", "#FFC300", "#FF5733", "#C70039", "#900C3F", "#cc7832"];
+		var checkValues;
+		document.addEventListener("DOMContentLoaded", () => {
+			//...
+			document.getElementById("main").style.width = window.innerWidth + "px";
+			document.getElementById("main").style.height = window.innerHeight + "px";
+			Resizable.initialise("main");
+			//Apply random background colours from palette.
+			for(var i = 0; i < Resizable.activeContentWindows.length; i++){
+				Resizable.activeContentWindows[i].getDiv().style.backgroundColor = colourPalette[Math.floor(Math.random() * (colourPalette.length-1))];
+			}
+
+		})
+
+		window.addEventListener("resize", () => {
+			Resizable.activeContentWindows[0].changeSize(window.innerWidth, window.innerHeight);
+			Resizable.activeContentWindows[0].childrenResize();
+		});
+		
+		
+	</script>
+
+</html>
+
