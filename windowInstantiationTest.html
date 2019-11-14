@@ -9,6 +9,13 @@
 
 		<style>
 
+			* {
+				padding: 0;
+				margin: 0;
+				top: 0;
+				left: 0;
+			}
+
 			.contentWindow{
 				position: absolute;
 				background-color: red;
@@ -99,12 +106,12 @@
 			<div class="resizable-right">
 				<div class="resizable-top">
 						<div class="resizable-left"></div>
-						<div class="resizable-right">
-								<div class="resizable-top">
-									<div class="resizable-left"></div>
-									<div class="resizable-right"></div>
+						<div class="resizable-right" id="mainParent">
+								<div class="resizable-top" id="top">
+									<div class="resizable-left" id="topLeft"></div>
+									<div class="resizable-right" id="topRight"></div>
 								</div>
-								<div class="resizable-bottom"></div>
+								<div class="resizable-bottom" id="bottom"></div>
 						</div>
 				</div>
 				<div class="resizable-bottom"></div>
@@ -116,7 +123,7 @@
 	<script>
 
 		var colourPalette = ["#DAF7A6", "#FFC300", "#FF5733", "#C70039", "#900C3F", "#cc7832"];
-
+		var checkValues;
 		document.addEventListener("DOMContentLoaded", () => {
 			//...
 			document.getElementById("main").style.width = window.innerWidth + "px";
@@ -125,6 +132,49 @@
 			//Apply random background colours from palette.
 			for(var i = 0; i < Resizable.activeContentWindows.length; i++){
 				Resizable.activeContentWindows[i].getDiv().style.backgroundColor = colourPalette[Math.floor(Math.random() * (colourPalette.length-1))];
+			}
+
+			checkValues = function(){
+				var resizerThickness = 4;
+				var topResizer = activeResizers[5];
+				var bottomResizer = activeResizers[3];
+				var topLeft = getContentWindowFromDiv(document.getElementById("topLeft"));
+				var topRight = getContentWindowFromDiv(document.getElementById("topRight"));
+				var mainParent = getContentWindowFromDiv(document.getElementById("mainParent"));
+				var bottom = getContentWindowFromDiv(document.getElementById("bottom"));
+
+				assertEqual(topResizer.getDiv().style.height, resizerThickness);
+				assertEqual(bottomResizer.getDiv().style.height, resizerThickness);
+				assertEqual(topLeft.getDiv().style.height, topLeft.height);
+				assertEqual(topRight.getDiv().style.height, topRight.height);
+				assertEqual(mainParent.getDiv().style.height, mainParent.height);
+				assertEqual(bottom.getDiv().style.height, bottom.height);
+
+				assertEqual(topRight.getDiv().style.top, 0);
+				assertEqual(topLeft.getDiv().style.top, 0);
+				assertEqual(mainParent.getDiv().style.top, 0);
+
+				assertEqual(bottom.getDiv().style.top, topLeft.height + resizerThickness);
+
+				
+
+				assertEqual(topLeft.getDiv().style.height, topRight.getDiv().style.height);
+				assertEqual(mainParent.height, (topLeft.height + bottom.height + resizerThickness));
+				assertEqual(topResizer.getDiv().style.top, topLeft.getDiv().style.height);
+			}
+
+			
+			function assertEqual(a, b){
+				if(typeof(a) === "string")
+					a = removePixelUnits(a);
+				if(typeof(b) === "string")
+					b = removePixelUnits(b);
+				if(a != b){
+					console.error(a + " does not equal " + b);
+				}
+			}
+			function removePixelUnits(pixelString){
+				return pixelString.substring(0, pixelString.length-2) - 0;
 			}
 		})
 		
