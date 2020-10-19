@@ -44,7 +44,7 @@ To hopefully better demonstrate the correct way to create a layout, the HTML cod
     </div>
   </div>
   <div  class="resizable-right"  id="win2">
-    <div  class="resizable-top"  win="win7">
+    <div  class="resizable-top"  id="win7">
       <div  class="resizable-left"  id="win9">
       </div>
       <div  class="resizable-right"  id="win10">
