@@ -7,8 +7,8 @@ A JavaScript library allowing the creation of resizable html divs.
 
 ## Setup
 Link to both resizable.js and resizable-style.css within the webpage and call:
- ``Resizable.initialise(parentId, sizes)``
-Where "parentId" is the element ID of the parent \<div> containing your resizable windows and "sizes" is an object literal containing the size values for how much space a child window will initally occupy within its parent (i.e. how far along the resizer line will appear). An empty object ``{}``will cause it to default to equal sizes.
+ ``Resizable.initialise(parentId, sizes, resizerThickness)``
+Where "parentId" is the element ID of the parent \<div> containing your resizable windows and "sizes" is an object literal containing the size values for how much space a child window will initally occupy within its parent (i.e. how far along the resizer line will appear). An empty object ``{}``will cause it to default to equal sizes. The third argument "resizerThickness" allows you to specify how thick the dividing lines will be. This is optional and will default to 4px.
 
 Example:
 ```js
