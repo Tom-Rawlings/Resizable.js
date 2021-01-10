@@ -372,22 +372,37 @@ Resizable.ContentWindow = class{
 
 };
 
+function resizerMouseDown(e) {
+  Resizable.resizingStarted();
+  e.stopPropagation();
+  Resizable.currentResizer = getResizerFromDiv(this.id);
+  window.addEventListener('mousemove', Resizable.currentResizer.resize);
+  window.addEventListener('mouseup', Resizable.currentResizer.cancelResize);
+}
+
+function resizerTouchStart(e) {
+  Resizable.resizingStarted();
+  Resizable.currentResizer = getResizerFromDiv(this.id);
+  window.addEventListener('touchmove', Resizable.currentResizer.resize);
+  window.addEventListener('touchend', Resizable.currentResizer.cancelResize);
+}
 
 function attachResizerEvents(){
-  var element = document.querySelectorAll('.resizer');
-  if (element) {
-    element.forEach(function(el){
-      el.addEventListener('mousedown', function(e) {
-        Resizable.currentResizer = getResizerFromDiv(el.id);
-        window.addEventListener('mousemove', Resizable.currentResizer.resize);
-        window.addEventListener('mouseup', Resizable.currentResizer.cancelResize);
-      });
-      el.addEventListener('touchstart', function(e) {
-        console.log("touchstart");
-        Resizable.currentResizer = getResizerFromDiv(el.id);
-        window.addEventListener('touchmove', Resizable.currentResizer.resize);
-        window.addEventListener('touchend', Resizable.currentResizer.cancelResize);
-      });
+  var elements = document.querySelectorAll('.resizer');
+  if (elements) {
+    elements.forEach(function(el){
+      el.addEventListener('mousedown', resizerMouseDown);
+      el.addEventListener('touchstart', resizerTouchStart);
+    });
+  }
+}
+
+function clearResizerEvents() {
+  var elements = document.querySelectorAll('.resizer');
+  if (elements) {
+    elements.forEach(function(el){
+      el.removeEventListener('mousedown', resizerMouseDown);
+      el.removeEventListener('touchstart', resizerTouchStart);
     });
   }
 }
@@ -410,6 +425,14 @@ function siblingWindowErrorCorrect(child){
 Resizable.windowResized = function(){
   //Code to run when any window is resized should be placed here.
 };
+
+Resizable.resizingEnded = function() {
+  //Runs whenever a resizer is clicked
+}
+
+Resizable.resizingStarted = function() {
+  //Runs on the next 'mouseup' or 'touchend' events after a resizer is clicked
+}
 
 
 
@@ -467,6 +490,7 @@ Resizable.Resizer = class{
 
 
     Resizable.activeResizers.push(this);
+    clearResizerEvents();
     attachResizerEvents();
 
   }
@@ -546,6 +570,7 @@ Resizable.Resizer = class{
     window.removeEventListener("touchmove", Resizable.currentResizer.resize);
     window.removeEventListener("touchend", Resizable.currentResizer.cancelResize);
     Resizable.currentResizer = null;
+    Resizable.resizingEnded();
   }
 
 };
