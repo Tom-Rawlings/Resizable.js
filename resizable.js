@@ -372,6 +372,24 @@ Resizable.ContentWindow = class{
 
 };
 
+Resizable.parentResize = function(width, height){
+  const parentWindow = Resizable.activeContentWindows[0];
+  parentWindow.changeSize(width, height);
+  parentWindow.repositionChildResizer();
+  if (parentWindow.children.length > 0) {
+    parentWindow.childrenResize();
+  }
+
+  if (parentWindow.parent != null) {
+    parentWindow.calculateSizeFractionOfParent();
+    parentWindow.getSibling().calculateSizeFractionOfParent();
+    siblingWindowErrorCorrect(parentWindow);
+  }
+
+  parentWindow.repositionChildResizer();
+  Resizable.windowResized();
+}
+
 function resizerMouseDown(e) {
   Resizable.resizingStarted();
   e.stopPropagation();
