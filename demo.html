@@ -1,90 +1,137 @@
 <!DOCTYPE html>
 
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel="stylesheet" type="text/css" href="resizable-style.css">
-		<title>Resizable Demo</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="resizable-style.css" />
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+    <title>Resizable Sidebar Demo</title>
 
-		<script src="resizable.js"></script>
+    <script src="resizable.js"></script>
 
-		<style>
+    <style>
+      #win5,
+      #win14 {
+        background-color: #81a19f;
+      }
+      #win9,
+      #win4 {
+        background-color: #beedeb;
+      }
+      #win12,
+      #win6 {
+        background-color: #b4e0de;
+      }
+      #win13,
+      #win8 {
+        background-color: #a0c7c5;
+      }
+    </style>
+  </head>
 
-			#win5, #win14{
-				background-color: #81A19F;
-			}
-			#win9, #win4{
-				background-color: #BEEDEB;
-			}
-			#win12, #win6{
-				background-color: #B4E0DE;
-			}
-			#win13, #win8{
-				background-color: #A0C7C5;
-			}
+  <body>
+    <div
+      class="w3-sidebar w3-bar-block w3-card w3-animate-left"
+      style="display: none"
+      id="mySidebar"
+    >
+      <button class="w3-bar-item w3-button w3-large" onclick="sidebarClose()">
+        Close &times;
+      </button>
+      <a href="#" class="w3-bar-item w3-button">Link 1</a>
+      <a href="#" class="w3-bar-item w3-button">Link 2</a>
+      <a href="#" class="w3-bar-item w3-button">Link 3</a>
+    </div>
 
-		</style>
+    <div id="main">
+      <div class="resizable-left" id="win1">
+        <div class="w3-teal">
+          <button
+            id="openNav"
+            class="w3-button w3-teal w3-xlarge"
+            onclick="sidebarOpen()"
+          >
+            &#9776;
+          </button>
+          <div class="w3-container">
+            <h1>Content</h1>
+          </div>
+        </div>
 
-	</head>
+        <div class="w3-container">
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
+            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+            aliquip ex ea commodo consequat. Duis aute irure dolor in
+            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+            culpa qui officia deserunt mollit anim id est laborum.
+          </p>
+        </div>
+      </div>
+      <div class="resizable-right" id="win2">
+        <div class="resizable-top" id="win7">
+          <div class="resizable-left" id="win9"></div>
+          <div class="resizable-right" id="win10">
+            <div class="resizable-top" id="win11">
+              <div class="resizable-left" id="win13"></div>
+              <div class="resizable-right" id="win14"></div>
+            </div>
+            <div class="resizable-bottom" id="win12"></div>
+          </div>
+        </div>
+        <div class="resizable-bottom" id="win8"></div>
+      </div>
+    </div>
+  </body>
 
-	<body>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("main").style.width = window.innerWidth + "px";
+      document.getElementById("main").style.height = window.innerHeight + "px";
 
-		<div id="main">
-			<div class="resizable-left" id="win1">
-				<div class="resizable-top" id="win3">
-					<div class="resizable-left" id="win5"></div>
-					<div class="resizable-right" id="win6"></div>
-				</div>
-				<div class="resizable-bottom" id="win4"></div>
-			</div>
-			<div class="resizable-right" id="win2">
-				<div class="resizable-top" id="win7">
-					<div class="resizable-left" id="win9"></div>
-					<div class="resizable-right" id="win10">
-						<div class="resizable-top" id="win11">
-							<div class="resizable-left" id="win13"></div>
-							<div class="resizable-right" id="win14"></div>
-						</div>
-						<div class="resizable-bottom" id="win12"></div>
-					</div>
-				</div>
-				<div class="resizable-bottom" id="win8"></div>
-			</div>
-		</div>
+      var sizes = {
+        win1: 0.5,
+        win3: 0.75,
+        win4: 0.5,
+        win6: 0.4,
+        win11: 0.8,
+        win9: 0.5,
+        win13: 0.4,
+      };
 
-	</body>
+      //let resizerThickness = 10;
+      //Resizable.initialise("main", sizes, resizerThickness);
+      Resizable.initialise("main", {});
+    });
 
-	<script>
+    window.addEventListener("resize", () => {
+      Resizable.activeContentWindows[0].changeSize(
+        window.innerWidth,
+        window.innerHeight
+      );
+      Resizable.activeContentWindows[0].childrenResize();
+    });
 
-		document.addEventListener("DOMContentLoaded", () => {
-			//...
-			document.getElementById("main").style.width = window.innerWidth + "px";
-			document.getElementById("main").style.height = window.innerHeight + "px";
+    function sidebarOpen() {
+			const sidebarWidth = 200;
+      document.getElementById("mySidebar").style.width = `${sidebarWidth}px`;
+      document.getElementById("mySidebar").style.display = "block";
+      document.getElementById("openNav").style.display = "none";
 
-			var sizes = {
-				"win1" : 0.5,
-				"win3" : 0.75,
-				"win4" : 0.5,
-				"win6" : 0.4,
-				"win11" : 0.8,
-				"win9" : 0.5,
-				"win13" : 0.4 
-			};
+			Resizable.parentResize(window.innerWidth - sidebarWidth, window.innerHeight);
+      document.getElementById("main").style.left = `${sidebarWidth}px`;
+    }
 
-			//let resizerThickness = 10;
-			//Resizable.initialise("main", sizes, resizerThickness);
-			Resizable.initialise("main", {});
+    function sidebarClose() {
+			const sidebarWidth = 200;
+      document.getElementById("mySidebar").style.display = "none";
+      document.getElementById("openNav").style.display = "inline-block";
 
-		});
-
-		window.addEventListener("resize", () => {
-			Resizable.activeContentWindows[0].changeSize(window.innerWidth, window.innerHeight);
-			Resizable.activeContentWindows[0].childrenResize();
-		});
-		
-		
-	</script>
-
+			Resizable.parentResize(window.innerWidth, window.innerHeight);
+      document.getElementById("main").style.left = '0px';
+    }
+  </script>
 </html>
-
