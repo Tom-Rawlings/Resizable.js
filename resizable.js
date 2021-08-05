@@ -62,12 +62,13 @@ Resizable.ContentWindow = class{
     if(div == null){
       this.divId = "contentWindow" + Resizable.activeContentWindows.length;
 
-      var htmlToAdd = `<div id="${this.divId}" class="contentWindow"></div>`;
+      var div = document.createElement('div');
+      div.id = this.divId;
+      div.classList.add('contentWindow');
 
       //Insert the div with correct ID into the parent window; or body if parent is null
       if(parent != null){
-        htmlToAdd = parent.getDiv().innerHTML + htmlToAdd;
-        parent.getDiv().innerHTML = htmlToAdd;
+        parent.getDiv().appendChild(div);
       }else{
         document.body.insertAdjacentHTML('afterbegin', htmlToAdd);
       }
@@ -482,8 +483,11 @@ Resizable.Resizer = class{
 
     this.divId = `resizer${Resizable.activeResizers.length}`;
 
-    parent.getDiv().innerHTML = parent.getDiv().innerHTML + 
-      `<div id="${this.divId}" class="resizer"></div>`;
+    var div = document.createElement('div');
+    div.id = this.divId;
+    div.classList.add('resizer');
+    parent.getDiv().appendChild(div);
+
     if(this.isHorizontal){
       this.getDiv().classList.add("horizontalResizer");
       this.getDiv().style.cursor ="ew-resize";
