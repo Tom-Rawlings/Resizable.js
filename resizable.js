@@ -392,6 +392,7 @@ Resizable.parentResize = function(width, height){
 }
 
 function resizerMouseDown(e) {
+  e.preventDefault();
   Resizable.resizingStarted();
   e.stopPropagation();
   Resizable.currentResizer = getResizerFromDiv(this.id);
